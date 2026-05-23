@@ -626,7 +626,7 @@
                             </div>
 
                             <!-- Gemini API Setup Panel -->
-                            <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl space-y-2">
+                            <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl space-y-3">
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <h4 class="font-bold text-xs">Google Gemini API Key</h4>
@@ -636,7 +636,12 @@
                                         Get Key <i class="fa-solid fa-up-right-from-square"></i>
                                     </a>
                                 </div>
-                                <input type="password" id="settings-api-key" oninput="saveApiKey(this.value)" placeholder="AIzaSy..." class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
+                                <div class="flex gap-2">
+                                    <input type="password" id="settings-api-key" onkeydown="handleSettingsKeySubmit(event)" placeholder="AIzaSy..." class="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
+                                    <button onclick="submitSettingsKey()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-save"></i> Apply
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Cloud Sync -->
@@ -1317,9 +1322,14 @@
                                 Get Free Key <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
                             </a>
                         </div>
-                        <div class="pt-4 space-y-1 text-left">
+                        <div class="pt-4 space-y-2 text-left w-full">
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Paste Your Key</label>
-                            <input type="password" placeholder="AIzaSy..." oninput="saveApiKeyFromInline(this.value)" class="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono text-center">
+                            <div class="flex gap-2">
+                                <input type="password" id="inline-api-key" placeholder="AIzaSy..." onkeydown="handleInlineKeySubmit(event)" class="flex-1 text-xs px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono text-center">
+                                <button onclick="submitInlineKey()" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow-md">
+                                    <i class="fa-solid fa-check"></i> Save
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1423,6 +1433,7 @@
         showAlert('New income stream successfully tracked!');
     }
 
+    // Delete passive/active income
     function deleteIncome(id) {
         dispatch(() => {
             state.monthlyIncome = state.monthlyIncome.filter(inc => inc.id !== id);
@@ -1598,16 +1609,50 @@
         localStorage.setItem('smarterbudget_apikey', userApiKey);
     }
 
-    function saveApiKeyFromInline(val) {
-        saveApiKey(val);
+    function submitInlineKey() {
+        const input = document.getElementById('inline-api-key');
+        if (!input) return;
+        const key = input.value.trim();
+        if (key.length < 10) {
+            showAlert('Please enter a valid API key (typically starts with AIzaSy)', 'error');
+            return;
+        }
+        saveApiKey(key);
+        
         // Sync setting page inputs
         const apiKeyInput = document.getElementById('settings-api-key');
         if (apiKeyInput) apiKeyInput.value = userApiKey;
 
-        // If a real key is typed, refresh UI immediately
-        if (userApiKey.length > 10) {
+        renderAIPanel();
+        showAlert('Gemini API Key saved and activated successfully!');
+    }
+
+    function handleInlineKeySubmit(e) {
+        if (e.key === 'Enter') {
+            submitInlineKey();
+        }
+    }
+
+    function submitSettingsKey() {
+        const input = document.getElementById('settings-api-key');
+        if (!input) return;
+        const key = input.value.trim();
+        if (key && key.length < 10) {
+            showAlert('Please enter a valid API key (typically starts with AIzaSy)', 'error');
+            return;
+        }
+        saveApiKey(key);
+        showAlert('Settings updated: Gemini API Key successfully saved!');
+        
+        // Refresh AI view if they jump back to insights tab
+        if (activeTab === 'ai-insights') {
             renderAIPanel();
-            showAlert('Gemini API Key saved successfully!');
+        }
+    }
+
+    function handleSettingsKeySubmit(e) {
+        if (e.key === 'Enter') {
+            submitSettingsKey();
         }
     }
 </script>
