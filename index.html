@@ -133,6 +133,9 @@
         state.currency = 'GBP';
     }
 
+    // Load API key from local secure browser storage
+    let userApiKey = localStorage.getItem('smarterbudget_apikey') || '';
+
     let activeTab = 'dashboard';
     let db = null;
     let auth = null;
@@ -567,7 +570,7 @@
                                 <div class="space-y-1 max-w-sm">
                                     <h5 class="font-bold text-slate-800 dark:text-white">Ready for a smart audit?</h5>
                                     <p class="text-xs text-slate-500 leading-relaxed">Click the "Generate Optimization Plan" button above. SmarterBudget will structure your current income, expense caps, and ledger transactions and prompt the AI engine to map out cuts!</p>
-                                end</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -610,6 +613,7 @@
                         </div>
 
                         <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <!-- Currency Display -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
                                 <div>
                                     <h4 class="font-bold text-xs">Primary Currency Display</h4>
@@ -621,6 +625,21 @@
                                 </select>
                             </div>
 
+                            <!-- Gemini API Setup Panel -->
+                            <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-xs">Google Gemini API Key</h4>
+                                        <p class="text-[11px] text-slate-400">Required to authorize AI insights on external hosting (GitHub Pages).</p>
+                                    </div>
+                                    <a href="https://aistudio.google.com/" target="_blank" class="text-[10px] font-bold text-brand-600 hover:text-brand-500 flex items-center gap-1">
+                                        Get Key <i class="fa-solid fa-up-right-from-square"></i>
+                                    </a>
+                                </div>
+                                <input type="password" id="settings-api-key" oninput="saveApiKey(this.value)" placeholder="AIzaSy..." class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
+                            </div>
+
+                            <!-- Cloud Sync -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
                                 <div>
                                     <h4 class="font-bold text-xs">Cloud Backup Strategy</h4>
@@ -1274,6 +1293,40 @@
 
     /* AI Conversation View */
     function renderAIPanel() {
+        const reportBody = document.getElementById('ai-report-body');
+        const timestamp = document.getElementById('ai-timestamp');
+        
+        // This constant is rewritten inside the sandboxed preview environment automatically.
+        const envApiKey = ""; 
+        const activeKey = userApiKey || envApiKey;
+
+        // If no API key is specified anywhere, show a clean, interactive key setup guide
+        if (!activeKey) {
+            reportBody.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center h-full space-y-4 py-12 px-4">
+                    <div class="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-500 text-2xl animate-pulse">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div class="space-y-2 max-w-sm">
+                        <h5 class="font-bold text-slate-800 dark:text-white text-sm">Gemini API Key Required</h5>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Since you are running this page on your own domain (GitHub Pages), you must link a free Gemini API key to enable AI reports and assistant features.
+                        </p>
+                        <div class="pt-2">
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-xs px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-md">
+                                Get Free Key <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                            </a>
+                        </div>
+                        <div class="pt-4 space-y-1 text-left">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Paste Your Key</label>
+                            <input type="password" placeholder="AIzaSy..." oninput="saveApiKeyFromInline(this.value)" class="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono text-center">
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         const chatViewport = document.getElementById('ai-chat-viewport');
         chatViewport.innerHTML = '';
 
@@ -1298,13 +1351,11 @@
         chatViewport.scrollTop = chatViewport.scrollHeight;
 
         // Render Report body if it exists
-        const reportBody = document.getElementById('ai-report-body');
-        const timestamp = document.getElementById('ai-timestamp');
-        
         if (state.aiReport && state.aiReport.markdown) {
             timestamp.innerText = `Last generated: ${state.aiReport.lastGenerated || 'Just now'}`;
             // A basic markdown renderer that replaces * with list bullets and bold labels
             let content = state.aiReport.markdown
+                .replace(/\*\*(.*?)\*\"/g, '<strong>$1</strong>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/^\*\s(.*)$/gm, '<li class="ml-4 mt-1.5 list-disc">$1</li>')
                 .replace(/^### (.*)$/gm, '<h5 class="text-sm font-black text-slate-900 dark:text-white mt-4">$1</h5>')
@@ -1314,6 +1365,18 @@
             reportBody.innerHTML = `
                 <div class="prose dark:prose-invert text-xs leading-relaxed space-y-3 max-w-none">
                     ${content}
+                </div>
+            `;
+        } else {
+            reportBody.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center h-full space-y-4 py-12">
+                    <div class="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-500 text-2xl animate-bounce">
+                        <i class="fa-solid fa-compass-drafting"></i>
+                    </div>
+                    <div class="space-y-1 max-w-sm">
+                        <h5 class="font-bold text-slate-800 dark:text-white">Ready for a smart audit?</h5>
+                        <p class="text-xs text-slate-500 leading-relaxed">Click the "Generate Optimization Plan" button above. SmarterBudget will structure your current income, expense caps, and ledger transactions and prompt the AI engine to map out cuts!</p>
+                    </div>
                 </div>
             `;
         }
@@ -1528,10 +1591,37 @@
         // Clear input so same file can be uploaded again if modified
         e.target.value = '';
     }
+
+    // Key handling functions for local execution
+    function saveApiKey(val) {
+        userApiKey = val.trim();
+        localStorage.setItem('smarterbudget_apikey', userApiKey);
+    }
+
+    function saveApiKeyFromInline(val) {
+        saveApiKey(val);
+        // Sync setting page inputs
+        const apiKeyInput = document.getElementById('settings-api-key');
+        if (apiKeyInput) apiKeyInput.value = userApiKey;
+
+        // If a real key is typed, refresh UI immediately
+        if (userApiKey.length > 10) {
+            renderAIPanel();
+            showAlert('Gemini API Key saved successfully!');
+        }
+    }
 </script>
 
 <script>
     async function generateAIReport() {
+        const envApiKey = ""; 
+        const apiKey = userApiKey || envApiKey;
+
+        if (!apiKey) {
+            showAlert('Google Gemini API Key is missing. Paste a key in the settings or setup panel.', 'error');
+            return;
+        }
+
         // Toggle loading indicator in AI report body
         const reportBody = document.getElementById('ai-report-body');
         if (reportBody) {
@@ -1588,7 +1678,6 @@
         Keep suggestions extremely encouraging, realistic, and positive. Avoid financial jargon.
         `;
 
-        const apiKey = ""; // Left empty to let the Canvas framework inject it automatically
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -1636,6 +1725,14 @@
         const query = chatInput.value.trim();
         if (!query) return;
 
+        const envApiKey = ""; 
+        const apiKey = userApiKey || envApiKey;
+
+        if (!apiKey) {
+            showAlert('Gemini API Key missing! Set it up first in Settings.', 'error');
+            return;
+        }
+
         // Add user statement to history
         dispatch(() => {
             state.chatHistory.push({ role: 'user', text: query });
@@ -1669,7 +1766,6 @@
         Please reply in an encouraging, practical conversational way. Keep answers within 1-2 small paragraphs.
         `;
 
-        const apiKey = "";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -1865,6 +1961,10 @@
         
         if (sidebarSelect) sidebarSelect.value = activeCurrency;
         if (settingsSelect) settingsSelect.value = activeCurrency;
+
+        // Sync local API Key input
+        const apiKeyInput = document.getElementById('settings-api-key');
+        if (apiKeyInput) apiKeyInput.value = userApiKey;
     }
 
     // Mount on load
