@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmarterBudget - AI Powered Monthly Budgeting</title>
-    <!-- Tailwind CSS for high fidelity design -->
+    <title>SmarterBudget - Personal Monthly Budgeting</title>
+    <!-- Tailwind CSS for premium UI styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -31,7 +31,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for beautiful analytics -->
+    <!-- Chart.js for beautiful static/local analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -52,28 +52,11 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        /* Pulse glow for AI Advisor */
-        .ai-glow {
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
-        }
     </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
 
-<script type="module">
-    // We import Firestore modules so we can seamlessly sync data to the cloud when requested.
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Bind modules to window for global access
-    window.FirebaseAuth = { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged };
-    window.FirebaseFirestore = { getFirestore, doc, setDoc, getDoc, onSnapshot };
-    window.FirebaseApp = { initializeApp };
-</script>
-
 <script>
-    
     // Default categories for budgets and expenses
     const CATEGORIES = {
         HOUSING: { name: 'Housing', color: '#6366f1', icon: 'fa-house' },
@@ -86,12 +69,12 @@
         MISC: { name: 'Miscellaneous', color: '#64748b', icon: 'fa-circle-question' }
     };
 
-    // Default Budget state in case LocalStorage or Cloud are completely fresh
+    // Default Budget state in case LocalStorage is completely fresh
     const DEFAULT_BUDGET_STATE = {
-        currency: 'GBP', // Set default currency to British Pounds (£)
+        currency: 'GBP', // Default currency to British Pounds (£)
         monthlyIncome: [
             { id: 'inc-1', source: 'Primary Salary', amount: 4800, frequency: 'monthly', category: 'Salary' },
-            { id: 'inc-2', source: 'Freelance Design', amount: 850, frequency: 'monthly', category: 'Freelance' }
+            { id: 'inc-2', source: 'Freelance Work', amount: 850, frequency: 'monthly', category: 'Freelance' }
         ],
         brackets: {
             HOUSING: 1800,
@@ -105,43 +88,28 @@
         },
         transactions: [
             { id: 't-1', type: 'out', category: 'HOUSING', description: 'Apartment Rent', amount: 1800, date: '2026-05-01' },
-            { id: 't-2', type: 'out', category: 'FOOD', description: 'Whole Foods Market', amount: 145.20, date: '2026-05-03' },
-            { id: 't-3', type: 'out', category: 'TRANSPORT', description: 'Gas Station Fuel', amount: 48.50, date: '2026-05-04' },
-            { id: 't-4', type: 'out', category: 'UTILITIES', description: 'High-speed Fiber Internet', amount: 89.99, date: '2026-05-05' },
-            { id: 't-5', type: 'out', category: 'ENTERTAINMENT', description: 'Movie Night & Snacks', amount: 42.00, date: '2026-05-08' },
-            { id: 't-6', type: 'out', category: 'FOOD', description: 'Weekly Groceries Run', amount: 112.40, date: '2026-05-10' },
-            { id: 't-7', type: 'out', category: 'ENTERTAINMENT', description: 'Premium Streaming Subs', amount: 24.99, date: '2026-05-12' },
-            { id: 't-8', type: 'out', category: 'MISC', description: 'New Coffee Maker', amount: 120.00, date: '2026-05-14' },
-            { id: 't-9', type: 'out', category: 'HEALTH', description: 'Gym Membership Fee', amount: 75.00, date: '2026-05-15' },
-            { id: 't-10', type: 'out', category: 'SAVINGS', description: 'ETF Portfolio Deposit', amount: 1000, date: '2026-05-15' },
-            { id: 't-11', type: 'out', category: 'FOOD', description: 'Dinner with friends', amount: 95.00, date: '2026-05-18' }
-        ],
-        aiReport: {
-            lastGenerated: null,
-            markdown: ""
-        },
-        chatHistory: [
-            { role: 'model', text: 'Hi, I am your SmarterBudget AI Financial Consultant. I analyze your income streams, actual expenses, and custom brackets to give you concrete, actionable targets where you can optimize. Try checking out the "AI Insights" tab to run a personalized audit of your monthly finances!' }
+            { id: 't-2', type: 'out', category: 'FOOD', description: 'Grocery Store Run', amount: 145.20, date: '2026-05-03' },
+            { id: 't-3', type: 'out', category: 'TRANSPORT', description: 'Fuel / Petrol', amount: 48.50, date: '2026-05-04' },
+            { id: 't-4', type: 'out', category: 'UTILITIES', description: 'Fiber Broadband', amount: 89.99, date: '2026-05-05' },
+            { id: 't-5', type: 'out', category: 'ENTERTAINMENT', description: 'Movie Tickets', amount: 42.00, date: '2026-05-08' },
+            { id: 't-6', type: 'out', category: 'FOOD', description: 'Weekly Supermarket Run', amount: 112.40, date: '2026-05-10' },
+            { id: 't-7', type: 'out', category: 'ENTERTAINMENT', description: 'Streaming Subscriptions', amount: 24.99, date: '2026-05-12' },
+            { id: 't-8', type: 'out', category: 'MISC', description: 'Household Accessories', amount: 120.00, date: '2026-05-14' },
+            { id: 't-9', type: 'out', category: 'HEALTH', description: 'Gym Membership', amount: 75.00, date: '2026-05-15' },
+            { id: 't-10', type: 'out', category: 'SAVINGS', description: 'Savings Deposit', amount: 1000, date: '2026-05-15' },
+            { id: 't-11', type: 'out', category: 'FOOD', description: 'Evening Dinner Out', amount: 95.00, date: '2026-05-18' }
         ]
     };
 
     // App state
     let state = JSON.parse(localStorage.getItem('smarterbudget_state')) || JSON.parse(JSON.stringify(DEFAULT_BUDGET_STATE));
     
-    // Ensure legacy state gets assigned the default GBP currency
+    // Ensure default currency property exists
     if (!state.currency) {
         state.currency = 'GBP';
     }
 
-    // Load API key from local secure browser storage
-    let userApiKey = localStorage.getItem('smarterbudget_apikey') || '';
-
     let activeTab = 'dashboard';
-    let db = null;
-    let auth = null;
-    let userId = null;
-    let isCloudSyncing = false;
-    let cloudEnabled = false;
 
     // Charts references to destroy before recreate
     let doughnutChart = null;
@@ -151,7 +119,6 @@
         localStorage.setItem('smarterbudget_state', JSON.stringify(state));
         updateDashboardKPIs();
         renderActiveView();
-        syncWithCloud();
     }
 
     // Safely dispatch actions and update
@@ -175,7 +142,7 @@
                     <h1 class="font-extrabold text-lg leading-tight tracking-tight">SmarterBudget</h1>
                     <span class="text-xs text-brand-100 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        AI Personal Optimizer
+                        Secure Offline Tracker
                     </span>
                 </div>
             </div>
@@ -198,30 +165,15 @@
                     <i class="fa-solid fa-list-check w-5 text-indigo-400"></i>
                     Transactions Ledger
                 </button>
-                <button onclick="switchTab('ai-insights')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-all duration-150 relative text-slate-400 hover:text-white hover:bg-slate-800 ai-glow" data-tab="ai-insights">
-                    <i class="fa-solid fa-wand-magic-sparkles w-5 text-violet-400"></i>
-                    AI Saving Assistant
-                    <span class="absolute right-3 px-2 py-0.5 text-[10px] font-bold bg-violet-600 text-white rounded-full animate-pulse">GenAI</span>
-                </button>
                 <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800" data-tab="settings">
-                    <i class="fa-solid fa-sliders w-5 text-slate-400"></i>
+                    <i class="fa-solid fa-gear w-5 text-slate-400"></i>
                     Settings & Exports
                 </button>
             </nav>
         </div>
 
-        <!-- Sync Panel / Dark Mode Toggle -->
+        <!-- Sidebar Configuration Controls -->
         <div class="p-4 border-t border-slate-800 space-y-3">
-            <div id="sync-indicator" class="flex items-center justify-between text-xs bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span class="text-slate-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud"></i>
-                    Cloud Sync:
-                </span>
-                <button onclick="toggleCloudSync()" class="px-2 py-1 text-[10px] font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition" id="cloud-sync-btn">
-                    Enable
-                </button>
-            </div>
-            
             <div class="flex items-center justify-between px-2">
                 <span class="text-xs text-slate-400">Currency</span>
                 <select id="currency-select" onchange="changeCurrency(this.value)" class="text-xs rounded-lg bg-slate-800 text-slate-300 p-1.5 border border-slate-700 focus:outline-none cursor-pointer">
@@ -277,12 +229,8 @@
                 <button onclick="switchTab('ledger'); toggleMobileNavMenu()" class="p-2.5 rounded-lg text-left bg-slate-800 hover:bg-slate-700 font-medium flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-indigo-400"></i> Ledger
                 </button>
-                <button onclick="switchTab('settings'); toggleMobileNavMenu()" class="p-2.5 rounded-lg text-left bg-slate-800 hover:bg-slate-700 font-medium flex items-center gap-2">
+                <button onclick="switchTab('settings'); toggleMobileNavMenu()" class="p-2.5 rounded-lg text-left bg-slate-800 hover:bg-slate-700 font-medium flex items-center gap-2 col-span-2">
                     <i class="fa-solid fa-gear text-slate-400"></i> Settings & Backup
-                </button>
-                <button onclick="switchTab('ai-insights'); toggleMobileNavMenu()" class="col-span-2 p-2.5 rounded-lg text-left bg-violet-950 hover:bg-violet-900 font-medium flex items-center justify-between border border-violet-800">
-                    <span class="flex items-center gap-2 text-violet-200"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Saving Assistant</span>
-                    <span class="px-2 py-0.5 text-[9px] bg-violet-600 text-white rounded">GENAI</span>
                 </button>
             </nav>
         </div>
@@ -399,20 +347,6 @@
                             <canvas id="categoryDoughnutChart"></canvas>
                         </div>
                     </div>
-                </div>
-
-                <!-- Smart Advisor Prompt Banner -->
-                <div class="p-6 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 text-white rounded-3xl shadow-lg border border-indigo-500/10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none" style="background-image: url('https://placehold.co/1000x300');"></div>
-                    <div class="relative z-10 space-y-2 max-w-xl text-center md:text-left">
-                        <span class="px-2.5 py-1 text-[10px] uppercase font-bold tracking-wider bg-white/20 text-white rounded-full">Automated Financial Intelligence</span>
-                        <h4 class="text-xl font-extrabold">Struggling to find where to tighten down?</h4>
-                        <p class="text-xs text-indigo-100">Let our custom generative AI audit your specific monthly allocations. SmarterBudget AI compares real transactions against planned brackets to present quick savings suggestions.</p>
-                    </div>
-                    <button onclick="switchTab('ai-insights')" class="relative z-10 px-6 py-3.5 bg-white text-indigo-700 hover:bg-slate-50 font-bold rounded-2xl text-sm transition shadow-lg flex items-center gap-2 flex-shrink-0 group">
-                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 animate-spin-slow group-hover:scale-110"></i>
-                        Analyze with AI Advisor
-                    </button>
                 </div>
             </div>
 
@@ -538,78 +472,13 @@
                 </div>
             </div>
 
-            <div id="tab-ai-insights" class="tab-content hidden space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-violet-500 animate-pulse"></i>
-                            AI Financial Consultant
-                        </h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Receive precise budget reports, savings audits, and personalized tips powered by AI.</p>
-                    </div>
-                    <button onclick="generateAIReport()" class="px-5 py-3.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 relative overflow-hidden group">
-                        <span class="absolute inset-0 bg-gradient-to-r from-violet-400 to-indigo-500 opacity-0 group-hover:opacity-10 transition"></span>
-                        <i class="fa-solid fa-shield-heart text-amber-300"></i>
-                        Generate Optimization Plan
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Markdown Analysis Document -->
-                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col justify-between">
-                        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center flex-shrink-0">
-                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Current AI Audit Report</span>
-                            <span class="text-[10px] text-slate-500" id="ai-timestamp">Last generated: Never</span>
-                        </div>
-                        <div class="p-6 md:p-8 overflow-y-auto max-h-[500px] flex-1 min-h-[300px]" id="ai-report-body">
-                            <!-- Populated with generative advice -->
-                            <div class="flex flex-col items-center justify-center text-center h-full space-y-4 py-12">
-                                <div class="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-500 text-2xl animate-bounce">
-                                    <i class="fa-solid fa-compass-drafting"></i>
-                                </div>
-                                <div class="space-y-1 max-w-sm">
-                                    <h5 class="font-bold text-slate-800 dark:text-white">Ready for a smart audit?</h5>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Click the "Generate Optimization Plan" button above. SmarterBudget will structure your current income, expense caps, and ledger transactions and prompt the AI engine to map out cuts!</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right: Active AI Advisory Chat panel -->
-                    <div class="bg-slate-900 dark:bg-slate-950 text-white rounded-3xl overflow-hidden flex flex-col h-[560px] border border-slate-800">
-                        <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center gap-3 flex-shrink-0">
-                            <div class="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm">
-                                <i class="fa-solid fa-robot"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-xs leading-none">Finny, AI Assistant</h4>
-                                <span class="text-[10px] text-emerald-400">Online & ready</span>
-                            </div>
-                        </div>
-
-                        <!-- Chat stream viewport -->
-                        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="ai-chat-viewport">
-                            <!-- Populated from state.chatHistory -->
-                        </div>
-
-                        <!-- Chat input toolbar -->
-                        <div class="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2 flex-shrink-0">
-                            <input type="text" id="ai-chat-input" onkeydown="handleChatKey(event)" placeholder="Ask about categories or savings rule..." class="flex-1 text-xs bg-slate-900 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-violet-500 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500">
-                            <button onclick="sendChatMessage()" class="p-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition text-white">
-                                <i class="fa-solid fa-paper-plane text-xs"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div id="tab-settings" class="tab-content hidden space-y-6">
                 <div class="max-w-xl mx-auto space-y-6">
                     <!-- Config Box -->
                     <div class="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-6">
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 dark:text-white">Workspace Configuration</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure your sync credentials, clear memory, or toggle theme assets.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure your theme settings and default budget display configurations.</p>
                         </div>
 
                         <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -623,34 +492,6 @@
                                     <option value="GBP">Pounds (£)</option>
                                     <option value="USD">Dollars ($)</option>
                                 </select>
-                            </div>
-
-                            <!-- Gemini API Setup Panel -->
-                            <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h4 class="font-bold text-xs">Google Gemini API Key</h4>
-                                        <p class="text-[11px] text-slate-400">Required to authorize AI insights on external hosting (GitHub Pages).</p>
-                                    </div>
-                                    <a href="https://aistudio.google.com/" target="_blank" class="text-[10px] font-bold text-brand-600 hover:text-brand-500 flex items-center gap-1">
-                                        Get Key <i class="fa-solid fa-up-right-from-square"></i>
-                                    </a>
-                                </div>
-                                <div class="flex gap-2">
-                                    <input type="password" id="settings-api-key" onkeydown="handleSettingsKeySubmit(event)" placeholder="AIzaSy..." class="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
-                                    <button onclick="submitSettingsKey()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-                                        <i class="fa-solid fa-save"></i> Apply
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Cloud Sync -->
-                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
-                                <div>
-                                    <h4 class="font-bold text-xs">Cloud Backup Strategy</h4>
-                                    <p class="text-[11px] text-slate-400">Stores budget objects on securely isolated backend documents.</p>
-                                </div>
-                                <button onclick="toggleCloudSync()" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200" id="settings-cloud-btn">Enable Cloud</button>
                             </div>
                         </div>
                     </div>
@@ -685,7 +526,7 @@
                                     <h4 class="font-bold text-xs flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                         <i class="fa-solid fa-file-lines"></i> App Backup (.json)
                                     </h4>
-                                    <p class="text-[10px] text-slate-400 mt-1">Save your complete setup including target budgets, AI conversation configurations, and workspace attributes.</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Save your complete setup including target budgets and offline workspace attributes.</p>
                                 </div>
                                 <button onclick="exportToJSON()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition">
                                     Download JSON State
@@ -949,10 +790,10 @@
             tierBadge.className = "px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded";
         } else if (savingsRate > 0) {
             tierBadge.innerText = "Standard Safety";
-            tierBadge.className = "px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 rounded";
+            tierBadge.className = "px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 rounded";
         } else {
             tierBadge.innerText = "Deficit Redline";
-            tierBadge.className = "px-1.5 py-0.5 text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 rounded";
+            tierBadge.className = "px-1.5 py-0.5 text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 rounded";
         }
     }
 
@@ -1098,10 +939,7 @@
             renderBracketsTab();
         } else if (activeTab === 'ledger') {
             renderLedgerTab();
-        } else if (activeTab === 'ai-insights') {
-            renderAIPanel();
         } else if (activeTab === 'settings') {
-            // Re-bind configuration settings values to state
             updateCurrencyUIWidgets();
         }
     }
@@ -1269,7 +1107,6 @@
             const row = document.createElement('tr');
             row.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition duration-150 border-b border-slate-100 dark:border-slate-800";
             
-            // Format classification tag
             let amountMarkup = "";
             if (tx.type === 'in') {
                 amountMarkup = `<span class="text-emerald-500 font-bold font-mono">+${formatCurrency(tx.amount)}</span>`;
@@ -1294,102 +1131,6 @@
             `;
             tbody.appendChild(row);
         });
-    }
-
-    /* AI Conversation View */
-    function renderAIPanel() {
-        const reportBody = document.getElementById('ai-report-body');
-        const timestamp = document.getElementById('ai-timestamp');
-        
-        // This constant is rewritten inside the sandboxed preview environment automatically.
-        const envApiKey = ""; 
-        const activeKey = userApiKey || envApiKey;
-
-        // If no API key is specified anywhere, show a clean, interactive key setup guide
-        if (!activeKey) {
-            reportBody.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center h-full space-y-4 py-12 px-4">
-                    <div class="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-500 text-2xl animate-pulse">
-                        <i class="fa-solid fa-key"></i>
-                    </div>
-                    <div class="space-y-2 max-w-sm">
-                        <h5 class="font-bold text-slate-800 dark:text-white text-sm">Gemini API Key Required</h5>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Since you are running this page on your own domain (GitHub Pages), you must link a free Gemini API key to enable AI reports and assistant features.
-                        </p>
-                        <div class="pt-2">
-                            <a href="https://aistudio.google.com/" target="_blank" class="text-xs px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-md">
-                                Get Free Key <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
-                            </a>
-                        </div>
-                        <div class="pt-4 space-y-2 text-left w-full">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Paste Your Key</label>
-                            <div class="flex gap-2">
-                                <input type="password" id="inline-api-key" placeholder="AIzaSy..." onkeydown="handleInlineKeySubmit(event)" class="flex-1 text-xs px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500 font-mono text-center">
-                                <button onclick="submitInlineKey()" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow-md">
-                                    <i class="fa-solid fa-check"></i> Save
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const chatViewport = document.getElementById('ai-chat-viewport');
-        chatViewport.innerHTML = '';
-
-        state.chatHistory.forEach(msg => {
-            const row = document.createElement('div');
-            row.className = `flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`;
-            
-            const avatar = msg.role === 'user' 
-                ? '<div class="w-7 h-7 bg-slate-700 text-white rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0">ME</div>'
-                : '<div class="w-7 h-7 bg-violet-600 text-white rounded-full flex items-center justify-center text-[10px] flex-shrink-0"><i class="fa-solid fa-robot"></i></div>';
-
-            row.innerHTML = `
-                ${avatar}
-                <div class="${msg.role === 'user' ? 'bg-violet-600 text-white rounded-2xl rounded-tr-none' : 'bg-slate-800 text-slate-100 rounded-2xl rounded-tl-none'} px-4 py-3 text-xs leading-relaxed">
-                    <p class="whitespace-pre-line">${msg.text}</p>
-                </div>
-            `;
-            chatViewport.appendChild(row);
-        });
-
-        // Scroll view to bottom
-        chatViewport.scrollTop = chatViewport.scrollHeight;
-
-        // Render Report body if it exists
-        if (state.aiReport && state.aiReport.markdown) {
-            timestamp.innerText = `Last generated: ${state.aiReport.lastGenerated || 'Just now'}`;
-            // A basic markdown renderer that replaces * with list bullets and bold labels
-            let content = state.aiReport.markdown
-                .replace(/\*\*(.*?)\*\"/g, '<strong>$1</strong>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/^\*\s(.*)$/gm, '<li class="ml-4 mt-1.5 list-disc">$1</li>')
-                .replace(/^### (.*)$/gm, '<h5 class="text-sm font-black text-slate-900 dark:text-white mt-4">$1</h5>')
-                .replace(/^## (.*)$/gm, '<h4 class="text-base font-black text-violet-600 mt-5">$1</h4>')
-                .replace(/\n\n/g, '<br/>');
-
-            reportBody.innerHTML = `
-                <div class="prose dark:prose-invert text-xs leading-relaxed space-y-3 max-w-none">
-                    ${content}
-                </div>
-            `;
-        } else {
-            reportBody.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center h-full space-y-4 py-12">
-                    <div class="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-500 text-2xl animate-bounce">
-                        <i class="fa-solid fa-compass-drafting"></i>
-                    </div>
-                    <div class="space-y-1 max-w-sm">
-                        <h5 class="font-bold text-slate-800 dark:text-white">Ready for a smart audit?</h5>
-                        <p class="text-xs text-slate-500 leading-relaxed">Click the "Generate Optimization Plan" button above. SmarterBudget will structure your current income, expense caps, and ledger transactions and prompt the AI engine to map out cuts!</p>
-                    </div>
-                </div>
-            `;
-        }
     }
 </script>
 
@@ -1433,7 +1174,6 @@
         showAlert('New income stream successfully tracked!');
     }
 
-    // Delete passive/active income
     function deleteIncome(id) {
         dispatch(() => {
             state.monthlyIncome = state.monthlyIncome.filter(inc => inc.id !== id);
@@ -1599,406 +1339,11 @@
             }
         };
         reader.readAsText(file);
-        // Clear input so same file can be uploaded again if modified
         e.target.value = '';
     }
-
-    // Key handling functions for local execution
-    function saveApiKey(val) {
-        userApiKey = val.trim();
-        localStorage.setItem('smarterbudget_apikey', userApiKey);
-    }
-
-    function submitInlineKey() {
-        const input = document.getElementById('inline-api-key');
-        if (!input) return;
-        const key = input.value.trim();
-        if (key.length < 10) {
-            showAlert('Please enter a valid API key (typically starts with AIzaSy)', 'error');
-            return;
-        }
-        saveApiKey(key);
-        
-        // Sync setting page inputs
-        const apiKeyInput = document.getElementById('settings-api-key');
-        if (apiKeyInput) apiKeyInput.value = userApiKey;
-
-        renderAIPanel();
-        showAlert('Gemini API Key saved and activated successfully!');
-    }
-
-    function handleInlineKeySubmit(e) {
-        if (e.key === 'Enter') {
-            submitInlineKey();
-        }
-    }
-
-    function submitSettingsKey() {
-        const input = document.getElementById('settings-api-key');
-        if (!input) return;
-        const key = input.value.trim();
-        if (key && key.length < 10) {
-            showAlert('Please enter a valid API key (typically starts with AIzaSy)', 'error');
-            return;
-        }
-        saveApiKey(key);
-        showAlert('Settings updated: Gemini API Key successfully saved!');
-        
-        // Refresh AI view if they jump back to insights tab
-        if (activeTab === 'ai-insights') {
-            renderAIPanel();
-        }
-    }
-
-    function handleSettingsKeySubmit(e) {
-        if (e.key === 'Enter') {
-            submitSettingsKey();
-        }
-    }
 </script>
 
 <script>
-    async function generateAIReport() {
-        const envApiKey = ""; 
-        const apiKey = userApiKey || envApiKey;
-
-        if (!apiKey) {
-            showAlert('Google Gemini API Key is missing. Paste a key in the settings or setup panel.', 'error');
-            return;
-        }
-
-        // Toggle loading indicator in AI report body
-        const reportBody = document.getElementById('ai-report-body');
-        if (reportBody) {
-            reportBody.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center h-full py-12 space-y-4">
-                    <div class="w-12 h-12 rounded-full border-4 border-violet-500 border-t-transparent animate-spin"></div>
-                    <div class="space-y-1">
-                        <h5 class="font-bold text-slate-800 dark:text-white">AI is auditing your budget...</h5>
-                        <p class="text-xs text-slate-400">Comparing category brackets to current month transactions and passive income streams.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Format present stats for prompt injection
-        let totalInc = 0;
-        state.monthlyIncome.forEach(inc => {
-            if (inc.frequency === 'weekly') totalInc += (inc.amount * 4);
-            else totalInc += inc.amount;
-        });
-
-        const catOutflows = {};
-        Object.keys(CATEGORIES).forEach(key => {
-            catOutflows[key] = 0;
-        });
-        state.transactions.forEach(tx => {
-            if (tx.type === 'out' && catOutflows[tx.category] !== undefined) {
-                catOutflows[tx.category] += tx.amount;
-            }
-        });
-
-        const activeCurrency = state.currency || 'GBP';
-        const currencySymbol = activeCurrency === 'GBP' ? '£' : '$';
-
-        const promptText = `
-        Please analyze my monthly budget context below and create a structured optimization report.
-        Note: My active currency display is set to ${activeCurrency} (${currencySymbol}). Please format all proposed modifications and figures utilizing the ${currencySymbol} currency symbol.
-        ---
-        Expected Monthly Revenue: ${totalInc} ${activeCurrency}
-        Category Brackets Planned:
-        ${JSON.stringify(state.brackets, null, 2)}
-
-        Actual spending registered per category currently:
-        ${JSON.stringify(catOutflows, null, 2)}
-        
-        Recent raw ledger transactions recorded:
-        ${JSON.stringify(state.transactions.slice(0, 10), null, 2)}
-        ---
-        Please structure the optimization report precisely as follows:
-        1. ## Executive Budget Summary (Brief analysis of my current revenue vs planned bracket caps)
-        2. ## Urgent Action Targets (Highlight categories where actual spending exceeds budget brackets, or where the bracket ceiling is too aggressive relative to revenue)
-        3. ## Actionable Cutback Suggestions (Give 3 specific cutback tips with approximate amounts to save based on categories)
-        4. ## Recommended Optimized Brackets (Provide a restructured bracket list that ensures at least a solid savings margin)
-        Keep suggestions extremely encouraging, realistic, and positive. Avoid financial jargon.
-        `;
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const payload = {
-            contents: [{ parts: [{ text: promptText }] }],
-            systemInstruction: {
-                parts: [{ text: "You are a world-class financial analyzer and positive budget coach. Review revenue streams, targeted brackets, and current month spending. Give precise optimization reports using markdown heading elements. Highlight realistic cuts." }]
-            }
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error("HTTP error with generative backend: " + response.status);
-            }
-
-            const result = await response.json();
-            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (textResponse) {
-                dispatch(() => {
-                    state.aiReport = {
-                        lastGenerated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        markdown: textResponse
-                    };
-                });
-                showAlert('New optimization report successfully generated!');
-            } else {
-                throw new Error("Empty candidate result returned from Gemini");
-            }
-        } catch (err) {
-            console.error(err);
-            showAlert('Could not contact the generative server. Double check configurations and try again.', 'error');
-            // Revert container UI
-            renderAIPanel();
-        }
-    }
-
-    async function sendChatMessage() {
-        const chatInput = document.getElementById('ai-chat-input');
-        const query = chatInput.value.trim();
-        if (!query) return;
-
-        const envApiKey = ""; 
-        const apiKey = userApiKey || envApiKey;
-
-        if (!apiKey) {
-            showAlert('Gemini API Key missing! Set it up first in Settings.', 'error');
-            return;
-        }
-
-        // Add user statement to history
-        dispatch(() => {
-            state.chatHistory.push({ role: 'user', text: query });
-        });
-        chatInput.value = '';
-        renderAIPanel();
-
-        // Show thinking animation in chat view
-        const chatViewport = document.getElementById('ai-chat-viewport');
-        const thinkingRow = document.createElement('div');
-        thinkingRow.className = 'flex gap-3 max-w-[85%] mr-auto text-slate-400';
-        thinkingRow.id = 'ai-thinking-row';
-        thinkingRow.innerHTML = `
-            <div class="w-7 h-7 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px]"><i class="fa-solid fa-spinner animate-spin"></i></div>
-            <div class="bg-slate-800 text-slate-300 rounded-2xl rounded-tl-none px-4 py-3 text-xs">
-                Analyzing budget parameters...
-            </div>
-        `;
-        chatViewport.appendChild(thinkingRow);
-        chatViewport.scrollTop = chatViewport.scrollHeight;
-
-        const activeCurrency = state.currency || 'GBP';
-        const currencySymbol = activeCurrency === 'GBP' ? '£' : '$';
-
-        // Build simple context payload
-        const promptText = `
-        User query: "${query}"
-        Note: The user's active currency display is set to ${activeCurrency} (${currencySymbol}). Format all suggested amounts in ${currencySymbol}.
-        My current brackets plan: ${JSON.stringify(state.brackets)}
-        My actual category spending: ${JSON.stringify(state.transactions)}
-        Please reply in an encouraging, practical conversational way. Keep answers within 1-2 small paragraphs.
-        `;
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const payload = {
-            contents: [{ parts: [{ text: promptText }] }],
-            systemInstruction: {
-                parts: [{ text: "You are Finny, a friendly chatbot and financial assistant. Respond briefly to queries using my active budget context." }]
-            }
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const thinkRow = document.getElementById('ai-thinking-row');
-            if (thinkRow) thinkRow.remove();
-
-            if (!response.ok) {
-                throw new Error("GenAI response issue");
-            }
-
-            const result = await response.json();
-            const reply = result.candidates?.[0]?.content?.parts?.[0]?.text || "I was able to look at your ledger, but couldn't formulate a suggestion right now. Try specifying your category details!";
-
-            dispatch(() => {
-                state.chatHistory.push({ role: 'model', text: reply });
-            });
-        } catch (e) {
-            console.error(e);
-            const thinkRow = document.getElementById('ai-thinking-row');
-            if (thinkRow) thinkRow.remove();
-            
-            dispatch(() => {
-                state.chatHistory.push({ role: 'model', text: "Sorry, I had a slight connection problem trying to analyze that context. Let's try again!" });
-            });
-        }
-        renderAIPanel();
-    }
-
-    function handleChatKey(e) {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
-    }
-</script>
-
-<script>
-    // Config values dynamically available if injected into window
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'smarterbudget-dev';
-    
-    async function initFirebaseAndAuth() {
-        if (typeof __firebase_config === 'undefined') {
-            console.log("Firebase config not available. Defaulting to fully capable local storage framework.");
-            return;
-        }
-
-        try {
-            const config = JSON.parse(__firebase_config);
-            const app = window.FirebaseApp.initializeApp(config);
-            db = window.FirebaseFirestore.getFirestore(app);
-            auth = window.FirebaseAuth.getAuth(app);
-
-            // Prioritize custom auth token if available, otherwise sign in anonymously as fallback
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await window.FirebaseAuth.signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await window.FirebaseAuth.signInAnonymously(auth);
-            }
-
-            window.FirebaseAuth.onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    cloudEnabled = true;
-                    updateSyncUI();
-                    loadFromCloud();
-                }
-            });
-        } catch (error) {
-            console.warn("Could not load Firestore. Operating smoothly in local storage mode.", error);
-        }
-    }
-
-    async function syncWithCloud() {
-        if (!cloudEnabled || !db || !userId) return;
-
-        isCloudSyncing = true;
-        updateSyncUI();
-
-        // Conforming STRICTLY to Rule 1 Path constraints: /artifacts/{appId}/users/{userId}/{collectionName}
-        const userBudgetDocRef = window.FirebaseFirestore.doc(db, 'artifacts', appId, 'users', userId, 'userBudgets', 'current');
-        
-        try {
-            await window.FirebaseFirestore.setDoc(userBudgetDocRef, {
-                state: state,
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
-        } catch (err) {
-            console.error("Firestore sync error:", err);
-        } finally {
-            isCloudSyncing = false;
-            updateSyncUI();
-        }
-    }
-
-    async function loadFromCloud() {
-        if (!cloudEnabled || !db || !userId) return;
-
-        const userBudgetDocRef = window.FirebaseFirestore.doc(db, 'artifacts', appId, 'users', userId, 'userBudgets', 'current');
-        
-        try {
-            const snapshot = await window.FirebaseFirestore.getDoc(userBudgetDocRef);
-            if (snapshot.exists()) {
-                const cloudData = snapshot.data();
-                if (cloudData && cloudData.state) {
-                    state = cloudData.state;
-                    
-                    // Assure legacy elements pull in correct defaults
-                    if (!state.currency) {
-                        state.currency = 'GBP';
-                    }
-
-                    // Don't call saveState here to prevent loops, write direct and refresh UI
-                    localStorage.setItem('smarterbudget_state', JSON.stringify(state));
-                    updateCurrencyUIWidgets();
-                    updateDashboardKPIs();
-                    renderActiveView();
-                    showAlert("SmarterBudget successfully pulled newest cloud configurations!");
-                }
-            }
-        } catch (err) {
-            console.error("Error fetching Firestore document: ", err);
-        }
-    }
-
-    function toggleCloudSync() {
-        if (cloudEnabled) {
-            cloudEnabled = false;
-            showAlert('Cloud saving turned off. Data remains on this machine.');
-            updateSyncUI();
-        } else {
-            // Attempt to bind
-            if (!db) {
-                initFirebaseAndAuth().then(() => {
-                    if (cloudEnabled) {
-                        showAlert('Cloud storage initialized! Progress matches safely across devices.');
-                        syncWithCloud();
-                    } else {
-                        showAlert('No active workspace credentials found. Using localStorage.', 'info');
-                    }
-                });
-            } else {
-                cloudEnabled = true;
-                showAlert('Live Cloud Backup enabled.');
-                syncWithCloud();
-            }
-        }
-    }
-
-    function updateSyncUI() {
-        const syncBtn = document.getElementById('cloud-sync-btn');
-        const settingsBtn = document.getElementById('settings-cloud-btn');
-        const indicator = document.getElementById('sync-indicator');
-
-        if (cloudEnabled) {
-            if (indicator) indicator.className = "flex items-center justify-between text-xs bg-emerald-950/20 p-3 rounded-xl border border-emerald-900/40 text-emerald-400";
-            if (syncBtn) {
-                syncBtn.innerText = "Sync Active";
-                syncBtn.className = "px-2 py-1 text-[10px] font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white transition";
-            }
-            if (settingsBtn) {
-                settingsBtn.innerText = "Disable Sync";
-                settingsBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition bg-rose-600 text-white hover:bg-rose-500";
-            }
-        } else {
-            if (indicator) indicator.className = "flex items-center justify-between text-xs bg-slate-950 p-3 rounded-xl border border-slate-800";
-            if (syncBtn) {
-                syncBtn.innerText = "Enable";
-                syncBtn.className = "px-2 py-1 text-[10px] font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition";
-            }
-            if (settingsBtn) {
-                settingsBtn.innerText = "Enable Sync";
-                settingsBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-xl transition bg-brand-600 text-white hover:bg-brand-500";
-            }
-        }
-    }
-
     function updateCurrencyUIWidgets() {
         const activeCurrency = state.currency || 'GBP';
         const sidebarSelect = document.getElementById('currency-select');
@@ -2006,23 +1351,13 @@
         
         if (sidebarSelect) sidebarSelect.value = activeCurrency;
         if (settingsSelect) settingsSelect.value = activeCurrency;
-
-        // Sync local API Key input
-        const apiKeyInput = document.getElementById('settings-api-key');
-        if (apiKeyInput) apiKeyInput.value = userApiKey;
     }
 
     // Mount on load
     window.onload = function () {
-        // Match selectors with initial state
         updateCurrencyUIWidgets();
-
-        // Initial setup
         updateDashboardKPIs();
         renderActiveView();
-        
-        // Try background Firebase init
-        initFirebaseAndAuth();
     }
 </script>
 
